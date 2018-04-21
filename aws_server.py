@@ -14,18 +14,14 @@ app= Flask(__name__)
 app.config['MONGO_DBNAME']= 'smarttrolley'
 app.config['MONGO_URL']= 'mongodb://localhost:27017/smarttrolley'
 mongo= PyMongo(app)
-#url= 'http://ec2-35-162-91-20.us-west-2.compute.amazonaws.com:1100/post/1/1/1'
-#_,identifier,xcoordinate,ycoordinate,zcoordinate= url.split('/',4)
+
 @app.route('/', methods=['POST'])
 def query_database():
     print( "Hello world")
-    ##print(request.json["message"])
-    # print(request.json['userid'])
     print(request.json["type"])
     print(request.json["msg"])
     
-### YOUR CODE HERE ####
-
+    #Command Type- getHelp- Purpose: To send sms to local assistant.
     if(request.json["type"]=="getHelp"):
       response = snsClient.publish(
           TopicArn = 'Removed as sensitive address here',
@@ -33,15 +29,15 @@ def query_database():
           Subject ='Need help in store'
       )
       return "done"
-    # for admin
-    # databaseitems.insert({'itemname': request.json["msg"]["itemname"],'tagid': request.json["msg"]["tagid"], 'cat': request.json["msg"]["cat"], 'location': request.json["msg"]["location"], 'promotionFlg': request.json["msg"]["promotionFlg"]})
-  
-    if(request.json["type"]=="addToBuyList"): #return json "price","quantity","itemname","tagid","location/cat"
+
+    #Command Type- addToBuyList- Purpose: To add item to ToBuyList (if item exists, update quantity. Else, insert data)
+    if(request.json["type"]=="addToBuyList"):
       method=request.json["msg"]["method"] #0- recipe #1-user item #2-database item
       itemname=request.json["msg"]["itemname"]
       quantity=request.json["msg"]["quantity"]
       databaseitems=mongo.db.items
       toBuyList = mongo.db.toBuyList
+      #add from recipe (multiple items)
       if(method=='0'):
         recipes = mongo.db.recipes
         itemlist=recipes.find({'recipename':itemname})
@@ -53,6 +49,7 @@ def query_database():
           else:
             i['quantity']=str(int(i['quantity'])+int(checkToBuyList[0]['quantity']))
             toBuyList.update({'itemname':i['itemname'],'userid':request.json['userid']},{'userid':request.json['userid'],'itemname':i['itemname'],'tagid':j['tagid'],'quantity':i['quantity'],'price':j['price'],'cat':j['cat'],'location':j['location']})
+      #add from favorite item/database (single item)
       if(method=='1' or method=='2'):
         j=databaseitems.find({'itemname':itemname})[0]
         checkToBuyList=toBuyList.find({'itemname':itemname})
@@ -61,22 +58,21 @@ def query_database():
         else:
           quantity=str(int(quantity)+int(checkToBuyList[0]['quantity']))
           toBuyList.update({'itemname':itemname,'userid':request.json['userid']},{'userid':request.json['userid'],'itemname':itemname,'tagid':j['tagid'],'quantity':quantity,'price':j['price'],'cat':j['cat'],'location':j['location']})
-
       return "done"
-
-    if(request.json["type"]=="getToBuyList"): #return json "price","quantity","itemname","tagid","location/cat"
+    #Command Type- getToBuyList- Purpose: To retrieve ToBuyList and return data in csv format
+    if(request.json["type"]=="getToBuyList"):
       toBuyListItems = mongo.db.toBuyList.find().sort([("location", 1)])
       itemstring=''
       for i in toBuyListItems:
         itemstring+=i['itemname']+','+i['quantity']+','+i['price']+','+i['location']+','
       return itemstring
-
-
+    #Command Type- removeToBuyList- Purpose: To remove item from ToBuyList
     if(request.json["type"]=="removeToBuyList"):
       mongo.db.toBuyList.remove({'itemname':request.json["msg"],'userid':request.json['userid']})
       return "done"
 
-    if(request.json["type"]=="moveToPurchaseHistory"): #return json "price","quantity","itemname","tagid","location/cat"
+    #Command Type- moveToPurchaseHistory- Purpose: To move item from ToBuyList to PurchaseHistory
+    if(request.json["type"]=="moveToPurchaseHistory"):
       msg=request.json["msg"].split(',')
       tagId=msg[2]
       date=msg[1]
@@ -101,7 +97,7 @@ def query_database():
           purchaseHistory.update({'tagid':tagId,'userid':request.json['userid'],'date':date,'month':month},{'tagid':tagId,'userid':request.json['userid'],'date':date,'month':month,'itemname':j['itemname'],'quantity':quantity,'price':j['price'],'cat':j['cat'],'location':j['location']})
       return "done"
 
-    #database item info: item name and tag id must be unique
+    #Command Type- retrievecat- Purpose: To retrieve unique item categories
     if(request.json["type"]=="retrievecat"):
       databaseitems=mongo.db.items
       catlist=databaseitems.distinct("cat")
@@ -110,6 +106,7 @@ def query_database():
       for i in catlist:
         catstring+=i+','
       return catstring
+    #Command Type- retrieveitemfromcat- Purpose: To retrieve items in a specific unique item category
     if(request.json["type"]=="retrieveitemfromcat"):
       databaseitems=mongo.db.items
       itemstring=""
@@ -118,6 +115,7 @@ def query_database():
         itemstring+=i['itemname']+','
       return itemstring
     
+    #Command Type- getdatabaseitem- Purpose: To get all items from database
     if(request.json["type"]=="getdatabaseitem"):
       databaseitems=mongo.db.items
       itemstring=""
@@ -125,22 +123,15 @@ def query_database():
       for i in itemlist:
         itemstring+=i['itemname']+','
       return itemstring
-      
-    # if(request.json["type"]=="tagitem"):
-    #   items=mongo.db.useritems
-    #   itemlist=items.find()
-    #   for i in itemlist:
-    #       moreinfo=databaseitems.find(i['itemname'])
-    #       print(moreinfo)
-    #   return "done"
 
+    #Command Type- additem- Purpose: To add item to user favorite list
     if(request.json["type"]=="additem"):
       items = mongo.db.useritems
       # databaseitems=mongo.db.items
       # itemlist=databaseitems.find({'itemname':request.json["msg"]})
       items.insert({'userid':request.json['userid'],'itemname':request.json["msg"]})
       return "done"
-    #user favorite item list
+    #Command Type- getitem- Purpose: To get item from user favorite list
     if(request.json["type"]=="getitem"):
       items = mongo.db.useritems
       itemstring=""
@@ -150,12 +141,13 @@ def query_database():
         j=databaseitems.find({'itemname':i['itemname']})
         itemstring+=i['itemname']+','+j[0]['price']+','
       return itemstring
+    #Command Type- removeitem- Purpose: To remove item from user favorite list
     if(request.json["type"]=="removeitem"):
       items=mongo.db.useritems
       items.remove({'itemname':request.json["msg"],'userid':request.json['userid']})
       return "done"
       
-    #user recipes
+    #Command Type- linkrecipe- Purpose: To create recipe with a list of items
     if(request.json["type"]=="linkrecipe"):
       recipes = mongo.db.recipes
       recipename =  request.json["msg"]["recipename"]
@@ -167,7 +159,7 @@ def query_database():
         print(recipename,items[i])
         recipes.insert({'userid':request.json['userid'],'recipename':recipename,'itemname':items[i],'quantity':numbers[i]})
       return "done"
-      
+    #Command Type- getrecipe- Purpose: To retrieve recipe
     if(request.json["type"]=="getrecipe"):
       recipes = mongo.db.recipes
       recipestring=""
@@ -177,11 +169,13 @@ def query_database():
         j=recipes.find({"recipename":i})
         recipestring+=i+','+str(j.count())+','
       return recipestring
+    #Command Type- removerecipe- Purpose: To remove recipe
     if(request.json["type"]=="removerecipe"):
       recipes = mongo.db.recipes
       recipes.remove({'recipename':request.json["msg"],'userid':request.json['userid']})
       return "done"
       
+    #Command Type- getuser- Purpose: To retrieve recipe
     if(request.json["type"]=="getuser"):
       user = mongo.db.user
       userDataString=""
@@ -192,6 +186,7 @@ def query_database():
       return userDataString
 
     
+    #Command Type- gettrolley- Purpose: To get trolley item
     if(request.json["type"]=="gettrolley"):
       trolleyinfo = mongo.db.trolleyinfo
       items=trolleyinfo.find({})
@@ -200,6 +195,7 @@ def query_database():
         itemString+=item["itemname"]+","
       return itemString  
       
+    #Command Type- recipesitem- Purpose: To get recipe items
     if(request.json["type"]=="recipesitem"):
         recipes = mongo.db.recipes
         recipelist=recipes.find({'recipename':request.json["msg"]})
@@ -210,7 +206,7 @@ def query_database():
         return recipesitem_string
         
     
-    #get money spent per category
+    #Command Type- getPurchaseHistoryPieChart- Purpose: To get Purchase History Categories to populate into Pie Chart
     if(request.json["type"]=="getPurchaseHistoryPieChart"):
         category = {}
         purchaseHistory = mongo.db.purchaseHistory
@@ -226,7 +222,7 @@ def query_database():
         print category_string
         return category_string
 
-    #get money spent for the months
+    #Command Type- getPurchaseHistoryBarChart- Purpose: To get Monthly Purchase History to populate into Bar Chart
     if(request.json["type"]=="getPurchaseHistoryBarChart"):
         month={'1':0,'2':0,'3':0,'4':0,'5':0,'6':0,'7':0,'8':0,'9':0,'10':0,'11':0,'12':0}
         purchaseHistory = mongo.db.purchaseHistory
@@ -239,7 +235,7 @@ def query_database():
         print month_string
         return month_string
     
-    #get money spent for the months
+    #Command Type- getPurchaseHistory- Purpose: To get a summary of Purchase History in a specific month
     if(request.json["type"]=="getPurchaseHistory"):
         uniquequantity = {}
         uniqueprices ={}
@@ -259,9 +255,7 @@ def query_database():
         print month_string
         return month_string
     
-    output2=2
-    #return jsonify({'result':output2})
-    #return "HTTP/1.1 200 math" #\r\nContent-Type: application/text\r\nContent-Length: 4\r\n\r\n{'math'}"
+    return "done"
 
 if __name__== '__main__':
   snsClient = aws.getClient('sns','us-east-1')
