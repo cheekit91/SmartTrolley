@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/homePage"
+            android:icon="@android:color/transparent"
+            android:title="Home" />
+        <item
+            android:id="@+id/scheduler"
+            android:icon="@android:color/transparent"
+            android:title="Reminder" />
+        <item
+            android:id="@+id/purchase"
+            android:icon="@android:color/transparent"
+            android:title="Purchase History" />
+        <item
+            android:id="@+id/stats"
+            android:icon="@android:color/transparent"
+            android:title="Statistics" />
+        <item
+            android:id="@+id/promotion"
+            android:icon="@android:color/transparent"
+            android:title="Promotions" />
+        <!--<item-->
+        <!--android:id="@+id/bluetooth"-->
+        <!--android:icon="@android:color/transparent"-->
+        <!--android:title="Bluetooth" />-->
+    </group>
+
+    <item android:title="Configuration">
+        <menu>
+        <item
+            android:id="@+id/tagItem"
+            android:icon="@android:color/transparent"
+            android:title="Tag Item"
+            android:visible="false"/>
+        <item
+            android:id="@+id/linkRecipe"
+            android:icon="@android:color/transparent"
+            android:title="Link Recipes"
+            android:visible="false"/>
+        <item
+            android:id="@+id/linkRecipeAddItem"
+            android:icon="@android:color/transparent"
+            android:title="Link Recipes Add Item"
+            android:visible="false"/>
+        <item
+            android:id="@+id/toBuyList"
+            android:icon="@android:color/transparent"
+            android:title="To buy List Add Item"
+            android:visible="false"/>
+        <item
+            android:id="@+id/itemList"
+            android:icon="@android:color/transparent"
+            android:title="Manage Favorite Items" />
+        <item
+            android:id="@+id/recipeList"
+            android:icon="@android:color/transparent"
+            android:title="Manage Recipes" />
+        </menu>
+    </item>
+
+    <item android:title="Help">
+        <menu>
+            <item
+                android:id="@+id/getHelp"
+                android:icon="@android:color/transparent"
+                android:title="Ask for assistence" />
+        </menu>
+    </item>
+</menu>

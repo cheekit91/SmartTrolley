@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.cheekit.group_1111_ee6765_iot.HomePage">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ImageButton
+            android:id="@+id/storemap"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:onClick="futureexpansion"
+            android:src="@drawable/ic_launcher" />
+        <TextView
+            android:id="@+id/priceHeader"
+            android:layout_width="match_parent"
+            android:layout_gravity="center"
+            android:layout_height="30dp"
+            android:text="To-buy List:"
+            android:textSize="18sp"
+            />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:layout_weight="1"></android.support.v7.widget.RecyclerView>
+        <Button
+            android:id="@+id/addButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="addBtnClicked"
+            android:layout_alignParentBottom="true"
+            android:text="Add Items/Recipes"/>
+    </LinearLayout>
+</android.support.design.widget.CoordinatorLayout>
